@@ -1,0 +1,5 @@
+﻿1>------ Build started: Project: EncounterTest, Configuration: Debug Win32 ------
+1>  EncounterTest.cpp
+1>  EncounterTest.vcxproj -> E:\Tafe\Monday C++  ANDREW\Assignment 2\Danny's battle system\BattleSystem-master_ver2\Debug\EncounterTest.exe
+1>  EncounterTest.vcxproj -> E:\Tafe\Monday C++  ANDREW\Assignment 2\Danny's battle system\BattleSystem-master_ver2\Debug\EncounterTest.pdb (Full PDB)
+========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
