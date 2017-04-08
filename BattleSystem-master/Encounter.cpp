@@ -1,148 +1,151 @@
 //BATTLE SYSTEM
 //by Danny Marshall and Callum Buchanan
+/*
+created 05-04-2017 ver 0.1 by Danny Marshall
+
+update 06-04-2017 ver 0.2 by Callum Buchanan:	-added music playback
+												-added block
+												-added spell system
+												-added wait system
+												-added bomb option
+												-added menu's
+												-added menu loop
+												-added run option
+
+update 07-04-2017 ver 0.3 by Callum Buchanan:	-added menu ascii art
+												-fixed player death check
+												-optimized audio playback
+												-added killself option
+
+update 07-04-2017 ver 0.4 by Callum Buchanan:	-input detects sentences and multiple words
+												-spell system doesn't reduce spell counter anymore
+												-bomb option resets incorrect input counter properly   */
+
 #include "stdafx.h"
 #include "Encounter.h"
 #include <string>
 #include "windows.media.h" //enable music player
 #pragma comment (lib, "winmm.lib") //enables music reader
 #include <algorithm> //enables string transform() function 
-
-/*
-	created 05-04-2017 ver 0.01 by Danny Marshall
-	update 06-04-2017 ver 0.02 by Callum Buchanan:	-added music playback	 
-													-added block
-													-added spell system	 
-													-added wait system	
-													-added bomb option
-													-added menu's
-													-added menu loop
-													-added run option
-
-	update 07-04-2017 ver 0.03 by Callum Buchanan:	-added menu ascii art	 
-													-fixed player death check	
-													-optimized audio playback	
-													-added killself option		*/
-
+																										
 using namespace std;
 
-
+//PLAYER SETTERS
 void Enounter::setPlayerDetails(string pName, int pHP, int potCount)
 {
 	playerName = pName;
 	playerHP = pHP;
 	potionCount = potCount;
 }
-
+//ENEMY SETTERS
 void Enounter::setEnemyDetails(string eName, int eHP, int eAtt)
 {
 	enemyName = eName;
 	enemyHP = eHP;
 	enemyAttack = eAtt;
 }
-
+//BATTLE OVER TEXT
 void battleOver()
 {
-	cout << "=======================================================================" << endl;
+	cout << "=========================================================================" << endl;
+	cout << endl;
+	cout << "\t\t\t\tBATTLE" << endl;
+	cout << endl;
+	cout << "\t\t\t\t OVER" << endl;
 	cout << endl;
 	cout << endl;
-	cout << "\t\tBATTLE" << endl;
-	cout << endl;
-	cout << "\t\t OVER" << endl;
-	cout << endl;
-	cout << endl;
-	cout << "=======================================================================" << endl;
+	cout << "=========================================================================" << endl;
 	cout << endl;
 }
-
+//BATTLE WON TEXT
 void battleWon()
 {
-	cout << "=======================================================================" << endl;
-	cout << endl;
+	cout << "=========================================================================" << endl;
 	cout << endl;
 	PlaySoundA("ba_another.wav", NULL, SND_ASYNC);
-	cout << "\t\tBATTLE" << endl;
+	cout << "\t\t\t\tBATTLE" << endl;
 	cout << endl;
-	cout << "\t\t WON" << endl;
+	cout << "\t\t\t\t WON" << endl;
 	cout << endl;
 	cout << endl;
-	cout << "=======================================================================" << endl;
+	cout << "=========================================================================" << endl;
 	cout << endl;
 }
-
+//HELP TEXT
 void help()
 {
 	cout << "Input commands:" << endl;
 	cout << endl;
-	cout << "\t-attack" << endl;
-	cout << "\t-block" << endl;
-	cout << "\t-bomb" << endl;
-	cout << "\t-cast" << endl;
+	cout << "\t-attack\\hit" << endl;
+	cout << "\t-block\\defend" << endl;
+	cout << "\t-throw bomb" << endl;
+	cout << "\t-spells\\cast spell" << endl;
 	cout << "\t-help" << endl;
 	cout << "\t-inventory\\i" << endl;
 	cout << "\t-killself" << endl;
-	cout << "\t-observe" << endl;
-	cout << "\t-potion" << endl;
-	cout << "\t-run" << endl;
-	cout << "\t-_exit" << endl;
+	cout << "\t-check enemy\\observe" << endl;
+	cout << "\t-drink potion" << endl;
+	cout << "\t-run away" << endl;
+	cout << "\t-exit\\quit" << endl;
 }
-
+//INTRO TEXT
 void intro()
 {
+	cout << "\t\t\tBATTLE SYSTEM\tver 0.3" << endl;
 	cout << endl;
-	cout << "\tBATTLE SYSTEM\tver 0.3" << endl;
-	cout << endl;
-	cout << "by Danny Marshall and Callum Buchanan" << endl;
+	cout << "\t\tby Danny Marshall and Callum Buchanan" << endl;
 	cout << endl;
 	cout << endl;
 	cout << "-type 'help' for list of commands" << endl;
 	cout << endl;
 	cout << endl;
 }
-
-
+//OUTPUT STRING
 void ot(string user_s)
 {
 	cout << user_s << endl; //quicker output string
 }
-
+//ASCII ART
 void ascii()
 {
-	cout << "=======================================================================" << endl;
+	cout << "=========================================================================" << endl;
 }
-
+//SINGLE ENDL
 void div()
 {
 	cout << endl;
 }
+//DOUBLE ENDL
+void dbldiv()
+{
+	cout << endl;
+	cout << endl;
+}
 
-bool quit;
-bool dead;
+//VARIABLES
 string spell;
+string playerInput;
+bool quit = false;
+bool spellReady = false;
+int damage;
+int hit;
 int potionCounter = 10;
 int run;
 int spellWait = 0;
 int attackWait = 1;
-bool win = false;
+int incorrect = 0;
 
+//MAIN
 void Enounter::battle()
 {
-	int incorrect = 0;
-	quit = false;
-	string playerInput;
-	int damage;
-	int hit;
 	ascii();
-	div();
 	cout << "Enter Name: ";
 	getline(cin, playerName);
 	div();
 	ascii();
 	intro();
 	PlaySoundA("wait.wav", NULL, SND_FILENAME);
-	int wait;
-	bool enemyWait = false;
 	ascii();
-	div();
 	cout << "A wild " << enemyName << " appears!" << endl;
 	//WHILE BATTLE WON OR PLAYER DEATH CONDITION NOT MET CONTINUE BATTLE
 	while (!quit && playerHP > 0)
@@ -155,7 +158,6 @@ void Enounter::battle()
 		{
 			spellWait = 0;
 			ascii();
-			div();
 			cout << "Health: " << playerHP << endl;
 		}
 		else
@@ -164,9 +166,8 @@ void Enounter::battle()
 			{
 				spellWait = 0;
 				ascii();
-				cout << "Health: " << playerHP << endl;
+				cout << "Health: " << playerHP << "\t\tSpell Timer: " << spellWait << endl;
 				ascii();
-				div();
 				PlaySoundA("wait2.wav", NULL, SND_FILENAME);
 				cout << playerName << " unleashes their energy!" << endl;
 				PlaySoundA("wait.wav", NULL, SND_FILENAME);
@@ -175,10 +176,9 @@ void Enounter::battle()
 			else
 			{
 				ascii();
+				cout << "Health: " << playerHP << "\t\tSpell Timer: " << spellWait << endl;
 				div();
-				cout << "Health: " << playerHP; cout << "\tSpell Timer: " << spellWait << endl;
 			}
-			
 		}
 		//IF SPELL COUNTER = 0
 		if (spellWait <= 0)
@@ -188,7 +188,7 @@ void Enounter::battle()
 				damage = 5;
 				cout << playerName << " casts Flare!" << endl;
 				PlaySoundA("wait.wav", NULL, SND_FILENAME);
-				cout << playerName + " deals " + to_string(damage) + " damage to " + enemyName << endl;
+				cout << playerName << " deals " << to_string(damage) << " damage to " << enemyName << endl;
 				PlaySoundA("flameburst1.wav", NULL, SND_FILENAME);
 				div();
 				enemyHP = enemyHP - damage;
@@ -196,7 +196,8 @@ void Enounter::battle()
 				{
 					ascii();
 					div();
-					cout << enemyName + " has been slain!!\n\n";
+					cout << enemyName << " has been slain!!" << endl;
+					div();
 					battleWon();
 					//SET ITEM DISCOVERY AFTER DEATH
 					/*win = true;*/
@@ -206,20 +207,20 @@ void Enounter::battle()
 				}
 				else
 				{
-					cout << enemyName + " attacks!\n";
+					cout << enemyName << " attacks!" << endl;
 					PlaySoundA("wait.wav", NULL, SND_FILENAME);
 					hit = rand() % 6 + 1;
 					//ENEMY HIT FAIL
 					if (hit < 3)
 					{
-						cout << enemyName + " misses!" << endl;
+						cout << enemyName << " misses!" << endl;
 						PlaySoundA("claw_miss2.wav", NULL, SND_FILENAME);
 					}
 					//ENEMT HIT SUCCESS
 					else
 					{
 						damage = rand() % 10 + 1;
-						cout << enemyName + " deals " + to_string(damage) + " damage to " + playerName << endl;
+						cout << enemyName << " deals " << to_string(damage) << " damage to " << playerName << endl;
 						PlaySoundA("claw_strike2.wav", NULL, SND_FILENAME);
 						playerHP = playerHP - damage;
 					}
@@ -236,7 +237,6 @@ void Enounter::battle()
 				cout << playerName << " casts freeze!" << endl;
 				PlaySoundA("wait.wav", NULL, SND_FILENAME);
 				div();
-				wait = 3;
 				cout << enemyName << " has frozen in place!" << endl;
 				//CLEAR EQUIPPED SPELL
 				spell = "";
@@ -250,20 +250,20 @@ void Enounter::battle()
 				cout << playerName << " is surrounded by a protective bubble!" << endl;
 				PlaySoundA("wait.wav", NULL, SND_FILENAME);
 				div();
-				cout << enemyName + " attacks!\n";
+				cout << enemyName << " attacks!" << endl;
 				PlaySoundA("wait.wav", NULL, SND_FILENAME);
 				hit = rand() % 6 + 1;
 				//ENEMY HIT FAIL
 				if (hit < 3)
 				{
-					cout << enemyName + " misses!" << endl;
+					cout << enemyName << " misses!" << endl;
 					PlaySoundA("claw_miss2.wav", NULL, SND_FILENAME);
 				}
 				//ENEMT HIT SUCCESS
 				else
 				{
 					damage = rand() % 3 + 1;
-					cout << enemyName + " deals " + to_string(damage) + " damage to " + playerName << endl;
+					cout << enemyName << " deals " << to_string(damage) << " damage to " << playerName << endl;
 					PlaySoundA("claw_strike3.wav", NULL, SND_FILENAME);
 					playerHP = playerHP - damage;
 				}
@@ -279,28 +279,26 @@ void Enounter::battle()
 				attackWait = 0;
 			}
 		}	
-		div();
 		cout << playerName << "'s turn: ";
 		PlaySoundA("in.wav", NULL, SND_ASYNC);
+		//GRABS ENTIRE LINE
 		getline(cin, playerInput);	
-
 		//CONVERTS STRING TO UPPERCASE FOR SPELLING CATCH
 		transform(playerInput.begin(), playerInput.end(), playerInput.begin(), ::toupper);
 		div();
 		ascii();
-		div();
 		//ATTACK
-		if (playerInput == "ATTACK")
+		if (playerInput == "ATTACK" || playerInput == "STRIKE" || playerInput == "HIT")
 		{
 			if (attackWait > 0)
 			{
-				cout << "Charging spell cannot attack!" << endl;
+				ot("Charging spell cannot attack!");
 				spellWait++;
 			}
 			else
 			{
 				//PLAYER TURN
-				cout << playerName + " attacks!\n";
+				cout << playerName << " attacks!" << endl;
 				PlaySoundA("wait.wav", NULL, SND_FILENAME);
 				hit = rand() % 6 + 1;
 
@@ -308,7 +306,7 @@ void Enounter::battle()
 				if (hit > 3)	
 				{
 					damage = rand() % 10 + 1;
-					cout << playerName + " deals " + to_string(damage) + " damage to " + enemyName + "\n";
+					cout << playerName << " deals " << to_string(damage) << " damage to " << enemyName << endl;
 					PlaySoundA("claw_strike1.wav", NULL, SND_FILENAME);
 					enemyHP = enemyHP - damage;
 					div();
@@ -317,31 +315,30 @@ void Enounter::battle()
 					{
 						ascii();
 						div();
-						cout << enemyName + " has been slain!!\n\n";
+						cout << enemyName << " has been slain!!" << endl;
+						div();
 						battleWon();
-						//SET ITEM DISCOVERY AFTER DEATH
-						win = true;
 						//EXIT WHILE LOOP
 						quit = true;
 					}
 					//ENEMY TURN
 					else	
 					{
-						cout << enemyName + " attacks!\n";
+						cout << enemyName << " attacks!" << endl;
 						PlaySoundA("wait.wav", NULL, SND_FILENAME);
 						hit = rand() % 6 + 1;
 							
 						//HIT FAIL
 						if (hit < 3)
 						{
-							cout << enemyName + " misses!" << endl;
+							cout << enemyName << " misses!" << endl;
 							PlaySoundA("claw_miss2.wav", NULL, SND_FILENAME);
 						}
 						//HIT PASS
 						else
 						{
 							damage = rand() % 10 + 1;
-							cout << enemyName + " deals " + to_string(damage) + " damage to " + playerName + "\n";
+							cout << enemyName << " deals " << to_string(damage) << " damage to " << playerName << endl;
 							PlaySoundA("claw_strike2.wav", NULL, SND_FILENAME);
 							playerHP = playerHP - damage;
 						}
@@ -355,14 +352,14 @@ void Enounter::battle()
 					cout << playerName << " misses!" << endl;
 					PlaySoundA("claw_miss2.wav", NULL, SND_FILENAME);
 					div();
-					cout << enemyName + " attacks!" << endl;
+					cout << enemyName << " attacks!" << endl;
 					PlaySoundA("wait.wav", NULL, SND_FILENAME);
 					hit = rand() % 6 + 1;
 
 					//HIT FAIL
 					if (hit < 3)
 					{
-						cout << enemyName + " misses!" << endl;
+						cout << enemyName << " misses!" << endl;
 						PlaySoundA("claw_miss1.wav", NULL, SND_FILENAME);
 					}
 					//HIT PASS
@@ -374,29 +371,29 @@ void Enounter::battle()
 						PlaySoundA("claw_strike1.wav", NULL, SND_FILENAME);
 					}
 				}
-				spellWait++;
 			}
+
 			incorrect = 0;
 		}
 
 		//BLOCK 
-		else if (playerInput == "BLOCK")
+		else if (playerInput == "DEFEND" || playerInput == "BLOCK")
 		{
-			cout << playerName + " braces for impact!" << endl;
+			cout << playerName << " braces for impact!" << endl;
 			PlaySoundA("wait.wav", NULL, SND_FILENAME);
 			div();
 
 			hit = rand() % 6 + 1;
 			if (hit < 3)
 			{
-				cout << enemyName + " attacks!\n";
+				cout << enemyName << " attacks!" << endl;
 				PlaySoundA("wait.wav", NULL, SND_FILENAME);
-				cout << enemyName + " misses!" << endl;
+				cout << enemyName << " misses!" << endl;
 				PlaySoundA("claw_miss2.wav", NULL, SND_FILENAME);
 			}
 			else
 			{
-				cout << enemyName + " attacks!\n";
+				cout << enemyName << " attacks!" << endl;
 				PlaySoundA("wait.wav", NULL, SND_FILENAME);
 				damage = rand() % 10 + 1;
 				damage = damage / 2;
@@ -405,18 +402,19 @@ void Enounter::battle()
 				playerHP = playerHP - damage;
 
 			}
+
 			incorrect = 0;
 		}
 
 		//BOMB
-		else if (playerInput == "BOMB")
+		else if (playerInput == "THROW BOMB" || playerInput == "BOMB" || playerInput == "THROW BOMBS" || playerInput == "BOMBS" || playerInput == "THROW A BOMB")
 		{
 			if (attackWait <= 0)
 			{
 				damage = 4;
 				cout << playerName << " throws a bomb!" << endl;
 				PlaySoundA("wait.wav", NULL, SND_FILENAME);
-				cout << playerName + " deals " + to_string(damage) + " damage to " + enemyName + "\n";
+				cout << playerName << " deals " << to_string(damage) << " damage to " << enemyName << endl;
 				PlaySoundA("flameburst1.wav", NULL, SND_FILENAME);
 				div();
 				enemyHP = enemyHP - damage;
@@ -424,7 +422,8 @@ void Enounter::battle()
 				{
 					ascii();
 					div();
-					cout << enemyName + " has been slain!!\n\n";
+					cout << enemyName << " has been slain!!" << endl;
+					div();
 					battleWon();
 					//SET ITEM DISCOVERY AFTER DEATH
 					/*win = true;*/
@@ -433,37 +432,39 @@ void Enounter::battle()
 				}
 				else
 				{
-					cout << enemyName + " attacks!\n";
+					cout << enemyName << " attacks!" << endl;
 					PlaySoundA("wait.wav", NULL, SND_FILENAME);
 					hit = rand() % 6 + 1;
 					//ENEMY HIT FAIL
 					if (hit < 3)
 					{
-						cout << enemyName + " misses!" << endl;
+						cout << enemyName << " misses!" << endl;
 						PlaySoundA("claw_miss2.wav", NULL, SND_FILENAME);
 					}
 					//ENEMT HIT SUCCESS
 					else
 					{
 						damage = rand() % 10 + 1;
-						cout << enemyName + " deals " + to_string(damage) + " damage to " + playerName + "\n";
+						cout << enemyName << " deals " << to_string(damage) << " damage to " << playerName << endl;
 						PlaySoundA("claw_strike2.wav", NULL, SND_FILENAME);
 						playerHP = playerHP - damage;
 					}
 				}
+				
 			}
 			else
 			{
 				cout << "Charging spell cannot attack!" << endl;
 				spellWait++;
 			}
+
+			incorrect = 0;
 		}
 
 		//EXIT
-		else if (playerInput == "_EXIT")
+		else if (playerInput == "EXIT" || playerInput == "QUIT")
 		{
 			//EXIT WHILE LOOP
-			win = true;
 			quit = true;
 		}
 
@@ -471,64 +472,57 @@ void Enounter::battle()
 		else if (playerInput == "HELP")
 		{
 			help();
-			incorrect = 0;
+
 			spellWait++;
+			incorrect = 0;
 		}
 
 		//INVENTORY
-		else if (playerInput == "INVENTORY")
+		else if (playerInput == "INVENTORY" || playerInput == "CHECK INVENTORY" || playerInput == "CHECK ITEMS" || playerInput == "I" || playerInput == "CHECK BAG" || playerInput == "CHECK SUPPLIES" || playerInput == "BAG")
 		{
 			cout << "\tPotions: " << potionCounter << endl;
-			spellWait++;
-			incorrect = 0;
-
-		}
-
-		//INVENTORY
-		else if (playerInput == "I")
-		{
-			cout << "\tPotions: " << potionCounter << endl;
+			
 			spellWait++;
 			incorrect = 0;
 		}
-
+		
 		//KILLSELF
-		else if (playerInput == "KILLSELF")
+		else if (playerInput == "KILLSELF" || playerInput == "SUICIDE" || playerInput == "COMMIT SUICIDE")
 		{
 			playerHP = 0;
 			quit = true;
 		}
 
 		//OBSERVE
-		else if (playerInput == "OBSERVE")
+		else if (playerInput == "OBSERVE" || playerInput == "ENEMY HEALTH" || playerInput == "CHECK ENEMY")
 		{
 			cout << "\tEnemy Health: " << enemyHP << endl;
 			div();
 			ascii();
-			div();
 			PlaySoundA("wait.wav", NULL, SND_FILENAME);
-			cout << enemyName + " starts to attack!\n";
+			cout << enemyName << " starts to attack!" << endl;
 			PlaySoundA("wait.wav", NULL, SND_FILENAME);
 			hit = rand() % 6 + 1;
 			//ENEMY HIT FAIL
 			if (hit < 3)
 			{
-				cout << enemyName + " misses!" << endl;
+				cout << enemyName << " misses!" << endl;
 				PlaySoundA("claw_miss2.wav", NULL, SND_FILENAME);
 			}
 			//ENEMT HIT SUCCESS
 			else
 			{
 				damage = rand() % 10 + 1;
-				cout << enemyName + " deals " << to_string(damage) << " damage to " << playerName << endl;
+				cout << enemyName << " deals " << to_string(damage) << " damage to " << playerName << endl;
 				PlaySoundA("claw_strike3.wav", NULL, SND_FILENAME);
 				playerHP = playerHP - damage;
 			}
+
 			incorrect = 0;
 		}
 
 		//POTION 
-		else if (playerInput == "POTION")
+		else if (playerInput == "POTION" || playerInput == "DRINK POTION" || playerInput == "USE POTION")
 		{
 			//CHECKS POTION COUNT
 			if (potionCounter < 1)
@@ -560,44 +554,46 @@ void Enounter::battle()
 				}
 				//ENEMY TURN AFTER PLAYER
 				div();
-				cout << enemyName + " attacks!\n";
+				cout << enemyName << " attacks!" << endl;
 				PlaySoundA("wait.wav", NULL, SND_FILENAME);
 				hit = rand() % 6 + 1;
 				//ENEMY MISS
 				if (hit < 3)
 				{	
-					cout << enemyName + " misses!" << endl;
+					cout << enemyName << " misses!" << endl;
 					PlaySoundA("claw_miss2.wav", NULL, SND_FILENAME);
 				}
 				//ENEMY HIT
 				else
 				{
 					damage = rand() % 10 + 1;
-					cout << enemyName + " deals " + to_string(damage) + " damage to " + playerName + "\n";
+					cout << enemyName << " deals " << to_string(damage) << " damage to " << playerName << endl;
 					PlaySoundA("claw_strike2.wav", NULL, SND_FILENAME);
 					playerHP = playerHP - damage;
 				}
 			}
+
 			incorrect = 0;
 		}
 
 		//SPELLS
-		else if (playerInput == "CAST")
+		else if (playerInput == "CAST" || playerInput == "SPELL" || playerInput == "CAST SPELL" || playerInput == "MAGIC" || playerInput == "SPELLS")
 		{
 			bool inputOk = false;
 			while (!inputOk)
 			{
-				ot("\tFlare:\tCharge - 2 \tDamage - 5");
-				ot("\tShield:\tCharge - 1 \tDefence - 5");
-				ot("\tFreeze:\tCharge - 3 \tEffect - 2");
+				ot("\tFlare:\tCharge - 2 \tDamage - Does +5 damage to enemy");
+				ot("\tShield:\tCharge - 2 \tEffect - Greatly reduces damage recieved");
+				ot("\tFreeze:\tCharge - 3 \tEffect - Freezes enemy in place");
 				div();
-				cout << "Enter Spell to Cast: ";
+				ot("-enter BACK to quit spell menu-");
+				div();
+				cout << "Enter spell to cast: ";
 				PlaySoundA("in.wav", NULL, SND_ASYNC);
 				getline(cin, playerInput);
 				transform(playerInput.begin(), playerInput.end(), playerInput.begin(), ::toupper);
 				div();
 				ascii();
-				div();
 				//FLARE
 				if (playerInput == "FLARE")
 				{
@@ -620,14 +616,14 @@ void Enounter::battle()
 					//ENEMY HIT FAIL
 					if (hit < 3)
 					{		
-						cout << enemyName + " misses!" << endl;
+						cout << enemyName << " misses!" << endl;
 						PlaySoundA("claw_miss2.wav", NULL, SND_FILENAME);
 					}
 					//ENEMT HIT SUCCESS
 					else
 					{
 						damage = rand() % 10 + 1;
-						cout << enemyName + " deals " + to_string(damage) + " damage to " + playerName << endl;
+						cout << enemyName << " deals " << to_string(damage) << " damage to " << playerName << endl;
 						PlaySoundA("claw_strike3.wav", NULL, SND_FILENAME);
 						playerHP = playerHP - damage;
 					}
@@ -639,7 +635,7 @@ void Enounter::battle()
 					inputOk = true;
 					spellWait = 3;
 					attackWait = 1;
-					cout << playerName + " starts to focus";
+					cout << playerName << " starts to focus";
 					cout << ".";
 					PlaySoundA("wait.wav", NULL, SND_FILENAME);
 					cout << ".";
@@ -647,20 +643,20 @@ void Enounter::battle()
 					cout << "." << endl;
 					PlaySoundA("wait.wav", NULL, SND_FILENAME);
 					div();
-					cout << enemyName + " attacks!\n";
+					cout << enemyName << " attacks!" << endl;
 					PlaySoundA("wait.wav", NULL, SND_FILENAME);
 					hit = rand() % 6 + 1;
 					//ENEMY HIT FAIL
 					if (hit < 3)
 					{
-						cout << enemyName + " misses!" << endl;
+						cout << enemyName << " misses!" << endl;
 						PlaySoundA("claw_miss1.wav", NULL, SND_FILENAME);
 					}
 					//ENEMT HIT SUCCESS
 					else
 					{
 						damage = rand() % 10 + 1;
-						cout << enemyName + " deals " + to_string(damage) + " damage to " + playerName + "\n";
+						cout << enemyName << " deals " << to_string(damage) << " damage to " << playerName << endl;
 						PlaySoundA("claw_strike3.wav", NULL, SND_FILENAME);
 						playerHP = playerHP - damage;
 					}
@@ -672,7 +668,7 @@ void Enounter::battle()
 					spellWait = 4;
 					attackWait = 1;
 					spell = "FREEZE";
-					cout << playerName + " starts to focus";
+					cout << playerName << " starts to focus";
 					cout << ".";
 					PlaySoundA("wait.wav", NULL, SND_FILENAME);
 					cout << ".";
@@ -680,42 +676,45 @@ void Enounter::battle()
 					cout << "." << endl;
 					PlaySoundA("wait.wav", NULL, SND_FILENAME);
 					div();
-					cout << enemyName + " attacks!\n";
+					cout << enemyName << " attacks!" << endl;
 					PlaySoundA("wait.wav", NULL, SND_FILENAME);
 					hit = rand() % 6 + 1;
 					//ENEMY HIT FAIL
 					if (hit < 3)
 					{
-						cout << enemyName + " misses!" << endl;
+						cout << enemyName << " misses!" << endl;
 						PlaySoundA("claw_miss1.wav", NULL, SND_FILENAME);
 					}
 					//ENEMT HIT SUCCESS
 					else
 					{
 						damage = rand() % 10 + 1;
-						cout << enemyName + " deals " + to_string(damage) + " damage to " + playerName + "\n";
+						cout << enemyName << " deals " << to_string(damage) << " damage to " << playerName << endl;
 						PlaySoundA("claw_strike1.wav", NULL, SND_FILENAME);
 						playerHP = playerHP - damage;
 					}
 				}
-				else if (playerInput == "BACK")
+				//EXIT MENU
+				else if (playerInput == "QUIT" || playerInput == "EXIT" || playerInput == "BACK" || playerInput == "CANCEL")
 				{
+					//EXIT WHILE LOOP
 					inputOk = true;
 					spellWait++;
 				}
+				//ERROR CATCH
 				else
 				{
 					ot("I don't understand");
 					div();
 					inputOk = false;
-					spellWait++;
 				}
 			}
+
 			incorrect = 0;
 		}
 
 		//RUN 
-		else if (playerInput == "RUN")
+		else if (playerInput == "RUN" || playerInput == "FLEE" || playerInput == "RETREAT" || playerInput == "RUN AWAY")
 		{
 			run = rand() % 30 + 1;
 			if (spell == "")
@@ -729,24 +728,23 @@ void Enounter::battle()
 				PlaySoundA("wait.wav", NULL, SND_FILENAME);
 				if (run < 10)
 				{
-					div();
 					PlaySoundA("run.wav", NULL, SND_ASYNC);
-					cout << playerName + " fled the battle!" << endl;
+					cout << playerName << " fled the battle!" << endl;
 					div();
 					battleOver();
 					quit = true;
 				}
 				else
 				{
-					cout << playerName + " failed to run away!" << endl;
+					cout << playerName << " failed to run away!" << endl;
 					div();
-					cout << enemyName + " attacks!\n";
+					cout << enemyName << " attacks!" << endl;
 					PlaySoundA("wait.wav", NULL, SND_FILENAME);
 					hit = rand() % 6 + 1;
 					//ENEMY HIT FAIL
 					if (hit < 3)
 					{
-						cout << enemyName + " misses!" << endl;
+						cout << enemyName << " misses!" << endl;
 						PlaySoundA("claw_miss1.wav", NULL, SND_FILENAME);
 							
 					}
@@ -754,7 +752,7 @@ void Enounter::battle()
 					else
 					{
 						damage = rand() % 15 + 1;
-						cout << enemyName + " deals " << to_string(damage) << " damage to " << playerName << endl;
+						cout << enemyName << " deals " << to_string(damage) << " damage to " << playerName << endl;
 						PlaySoundA("claw_strike3.wav", NULL, SND_FILENAME);
 						playerHP = playerHP - damage;
 					}
@@ -764,38 +762,38 @@ void Enounter::battle()
 			{
 				cout << playerName << " stopped focusing!" << endl;
 				spell = "";
-				cout << playerName << " tries to flee" << endl;
+				cout << playerName << " tries to flee";
 				cout << ".";
 				PlaySoundA("wait.wav", NULL, SND_FILENAME);
 				cout << ".";
 				PlaySoundA("wait.wav", NULL, SND_FILENAME);
 				cout << "." << endl;
 				PlaySoundA("wait.wav", NULL, SND_FILENAME);
-				div();
 				if (run < 10)
 				{
 					PlaySoundA("run.wav", NULL, SND_ASYNC);
-					cout << playerName + " fled the battle!" << endl;
+					cout << playerName << " fled the battle!" << endl;
 					battleOver();
 					quit = true;
 				}
 				else
 				{
-					cout << playerName + " failed to run away!" << endl;
-					cout << enemyName + " attacks!\n";
+					cout << playerName << " failed to run away!" << endl;
+					div();
+					cout << enemyName << " attacks!\n";
 					PlaySoundA("wait.wav", NULL, SND_FILENAME);
 					hit = rand() % 6 + 1;
 					//ENEMY HIT FAIL
 					if (hit < 3)
 					{
-						cout << enemyName + " misses!" << endl;
+						cout << enemyName << " misses!" << endl;
 						PlaySoundA("claw_miss2.wav", NULL, SND_FILENAME);
 					}
 					//ENEMT HIT SUCCESS
 					else
 					{
 						damage = rand() % 15 + 1;
-						cout << enemyName + " deals " << to_string(damage) << " damage to " << playerName << endl;
+						cout << enemyName << " deals " << to_string(damage) << " damage to " << playerName << endl;
 						PlaySoundA("claw_strike3.wav", NULL, SND_FILENAME);
 						playerHP = playerHP - damage;
 					}
@@ -809,6 +807,7 @@ void Enounter::battle()
 		else
 		{
 			incorrect++;
+			//DISPLAYS LIST OF COMMANDS UPON 3 INCORRECT ENTRIES
 			if (incorrect == 3)
 			{
 				cout << "I don't understand?" << endl;
@@ -832,20 +831,17 @@ void Enounter::battle()
 		cout << "Health: " << playerHP << endl;
 		div();
 		ascii();
-		div();
-		cout << playerName << " fell the the ground and died!" << endl;
+		cout << playerName << " succumbs to their wounds and falls to the ground!" << endl;
 		div();
 		ascii();
+		dbldiv();
+		ot("\t\t\tG\tA\tM\tE");
 		div();
-		div();
-		ot("\t\tG\tA\tM\tE");
-		div();
-		ot("\t\tO\tV\tE\tR");
-		div();
+		ot("\t\t\tO\tV\tE\tR");
+		dbldiv();
 		div();
 		ascii();
 		div();
 		PlaySoundA("scream_far3.wav", NULL, SND_ASYNC);
 	}
-
 } //END
