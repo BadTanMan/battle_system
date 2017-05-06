@@ -13,14 +13,9 @@ using namespace std;
 
 int main()
 {
-	string exit_i;
-	Enounter encount1;
-
-	//set the enemy details
-	encount1.setEnemyDetails("Crab", 25, 3);
-
-	//set the player details
-	encount1.setPlayerDetails("Danny", 30, 3);
+	Encounter encount1;	
+	encount1.setPlayerDetails("Jack", 30, 10, 10);
+	encount1.setEnemyDetails("Crab", 25, 10);
 	encount1.battle();
 	system("pause");
     return 1;
